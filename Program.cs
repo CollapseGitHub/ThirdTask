@@ -221,7 +221,10 @@ namespace ThirdTask
                 }
                 else index++;
             }
+            Console.WriteLine("5. Вернуться в меню");
             string selectedClient = Console.ReadLine().Trim();
+            if (selectedClient == "5")
+                MenuOptions();
             #region Проверки
             if (string.IsNullOrEmpty(selectedClient) || selectedClient.Length > 2) //Проверка на пустую строку или значения, которые больше одного символа
             {
