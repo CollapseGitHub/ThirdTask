@@ -17,7 +17,7 @@ namespace ThirdTask
             start:
             manager.PathOfFile = GetPathFromUser();
             manager.DB = manager.GetInfoFromDoc(manager.PathOfFile);
-            if (manager.DB == null) //Обработка исключения Файл используется другим процессом.
+            if (manager.DB == null) //Обработка исключения Файл используется другим процессом. p.s. изменить, чтобы тебя за такое не побили
             {
                 Console.WriteLine("Возникло исключение: Файл занят другим процессом, освободите файл и повторите попытку");
                 goto start;
@@ -302,7 +302,7 @@ namespace ThirdTask
             switch (userResult)
             {
                 case "1": { MonthGoldenClient(); break; }
-                case "2": { MenuOptions(); break; }
+                case "2": { YearsGoldenClient(); break; }
                 default:
                     {
                         Console.WriteLine("\nВ меню нет пункта " + userResult + "\nПроверьте правильность ввода"); //Обработка случая,
@@ -334,11 +334,286 @@ namespace ThirdTask
                 }
                 else break;
             }
+            #region Проверки
+            userChoose:
+                Console.Write("Месяц: ");
+                string selectedMonth = Console.ReadLine();
+                if (string.IsNullOrEmpty(selectedMonth) || selectedMonth.Length > 2) //Проверка на пустую строку или значения, которые больше двух символов
+                {
+                    Console.WriteLine("\nПожалуйста напишите одну цифру необходимого пункта меню");
+                    goto userChoose;
+                }
+            if (!int.TryParse(selectedMonth, out int number)) //Проверка на введение буквы
+            {
+                Console.WriteLine("\nВы ввели букву, введите цифру пункта меню");
+                goto userChoose;
+            }
+            else if (months.Keys.Contains(int.Parse(selectedMonth)) == false)
+            {
+                Console.WriteLine("\nВ меню нет пункта " + selectedMonth + "\nПроверьте правильность ввода"); //Обработка случая,
+                                                                                                              //когда введены несуществующие пункты меню
+                goto userChoose;
+            }
+            #endregion
+            List<string> tempArray = new List<string>();
+            foreach (var item in manager.DB[5])
+            {
+                string[] tempString = item.Value.ToString().Split(',');
+                if (DateTime.Parse(tempString[4]).Month == int.Parse(selectedMonth))
+                {
+                    tempArray.Add(tempString[1]); // код клиента
+                }
+            }
+
+            //Если в месяце был один заказ
+            if (tempArray.Count == 1)
+            {
+                foreach (var item in tempArray)
+                {
+                    Console.WriteLine($"\"Золотой\" клиент на {months[int.Parse(selectedMonth)]} месяц - " +
+                    $"{manager.DB[2][item]}\nКонтактное лицо организации - {manager.DB[4][item]}" +
+                    $"\n\nВыбрать другой месяц или вернуться в меню?\n1 - Выбрать другой месяц\n2 - Вернуться в меню");
+                #region Проверки
+                userChooseSecondTime:
+                    string userResult = Console.ReadLine().Trim();
+                    if (string.IsNullOrEmpty(userResult) || userResult.Length > 1) //Проверка на пустую строку или значения, которые больше одного символа
+                    {
+                        Console.WriteLine("\nПожалуйста напишите одну цифру необходимого пункта меню");
+                        goto userChooseSecondTime;
+                    }
+                    if (!int.TryParse(userResult, out int secnumber)) //Проверка на введение буквы
+                    {
+                        Console.WriteLine("\nВы ввели букву, введите цифру пункта меню");
+                        goto userChooseSecondTime;
+                    }
+                    switch (userResult)
+                    {
+                        case "1": { MonthGoldenClient(); break; }
+                        case "2": { MenuOptions(); break; }
+                        default:
+                            {
+                                Console.WriteLine("\nВ меню нет пункта " + userResult + "\nПроверьте правильность ввода"); //Обработка случая,
+                                                                                                                           //когда введены несуществующие пункты меню
+                                goto userChooseSecondTime;
+                            }
+                    }
+                    #endregion
+                }
+            }
+            //Если заказов в выбраном месяце не было
+            else if (tempArray.Count == 0)
+            {
+                Console.WriteLine($"За выбранный месяц - {months[int.Parse(selectedMonth)]} не было заказов" +
+                    $"\n\nВыбрать другой месяц или вернуться в меню?\n1 - Выбрать другой месяц\n2 - Вернуться в меню");
+            #region Проверки
+            userChooseSecondTime:
+                string userResult = Console.ReadLine().Trim();
+                if (string.IsNullOrEmpty(userResult) || userResult.Length > 1) //Проверка на пустую строку или значения, которые больше одного символа
+                {
+                    Console.WriteLine("\nПожалуйста напишите одну цифру необходимого пункта меню");
+                    goto userChooseSecondTime;
+                }
+                if (!int.TryParse(userResult, out int secnumber)) //Проверка на введение буквы
+                {
+                    Console.WriteLine("\nВы ввели букву, введите цифру пункта меню");
+                    goto userChooseSecondTime;
+                }
+                switch (userResult)
+                {
+                    case "1": { MonthGoldenClient(); break; }
+                    case "2": { MenuOptions(); break; }
+                    default:
+                        {
+                            Console.WriteLine("\nВ меню нет пункта " + userResult + "\nПроверьте правильность ввода"); //Обработка случая,
+                                                                                                                       //когда введены несуществующие пункты меню
+                            goto userChooseSecondTime;
+                        }
+                }
+                #endregion
+            }
+            //Если в месяце заказов больше 1
+            else if (tempArray.Count > 1)
+            {
+                string tempString = "";
+                index = 0;
+                Dictionary<string, int> differents = new Dictionary<string, int>();
+                foreach (var item in tempArray) //Перебираем выбранных клиентов
+                {
+                    if (index == 0) //Если это первая итерация заносим 1ого клиента во времнный словарь и указываем кол-во заказов - 1
+                    {
+                        differents.Add(item, 1);
+                        tempString += item;
+                        index++;
+                    }
+                    else
+                    {
+                        if (differents.Keys.Contains(item)) //Если в словаре уже есть ключ(код клиента) увеличиваем кол-во заказов на 1
+                        {
+                            differents[item] += 1;
+                        }
+                        else
+                        {
+                            differents.Add(item, 1); //Если нет, добавляем нового и его кол-во заказов увеличиваем до 1
+                        }
+                    }
+
+                }
+                var max = differents.MaxBy(kvp => kvp.Value).Key; //Определяем макмимальное значение value и передаём переменной max ключ(код клиента)
+                Console.WriteLine($"\"Золотой\" клиент на {months[int.Parse(selectedMonth)]} месяц - " +
+                    $"{manager.DB[2][max]}\nКонтактное лицо организации - {manager.DB[4][max]}"+
+                    $"\n\nВыбрать другой месяц или вернуться в меню?\n1 - Выбрать другой месяц\n2 - Вернуться в меню");
+            #region Проверки
+            userChooseSecondTime:
+                string userResult = Console.ReadLine().Trim();
+                if (string.IsNullOrEmpty(userResult) || userResult.Length > 1) //Проверка на пустую строку или значения, которые больше одного символа
+                {
+                    Console.WriteLine("\nПожалуйста напишите одну цифру необходимого пункта меню");
+                    goto userChooseSecondTime;
+                }
+                if (!int.TryParse(userResult, out int secnumber)) //Проверка на введение буквы
+                {
+                    Console.WriteLine("\nВы ввели букву, введите цифру пункта меню");
+                    goto userChooseSecondTime;
+                }
+                switch (userResult)
+                {
+                    case "1": { MonthGoldenClient(); break; }
+                    case "2": { MenuOptions(); break; }
+                    default:
+                        {
+                            Console.WriteLine("\nВ меню нет пункта " + userResult + "\nПроверьте правильность ввода"); //Обработка случая,
+                                                                                                                       //когда введены несуществующие пункты меню
+                            goto userChooseSecondTime;
+                        }
+                }
+                #endregion
+            }
         }
 
         static void YearsGoldenClient()
-        { 
-            
+        {
+            Console.Clear();
+            List<string> yearsArray = new List<string>();
+            List<string> tempCodeClients = new List<string>();
+            byte index = 0;
+            foreach (var item in manager.DB[5]) //Перебираем выбранные года
+            {
+                string[] tempString = item.Value.ToString().Split(',');
+                tempCodeClients.Add(tempString[1]);
+                if (index == 0) //Если это первая итерация заносим год во времнный лист
+                {
+                    yearsArray.Add(DateTime.Parse(tempString[4]).Year.ToString()); // год
+                    index++;
+                }
+                else if (yearsArray.Contains(DateTime.Parse(tempString[4]).Year.ToString())) //Если указанный год уже существует в листе, продолжаем перебор
+                {
+                    continue;
+                }
+                else yearsArray.Add(DateTime.Parse(tempString[4]).Year.ToString());
+            }
+            //Если в файле не было заказов за несколько лет, выводи золотого клиента за один год
+            if (yearsArray.Count == 1) 
+            {
+                string tempString = "";
+                index = 0;
+                Dictionary<string, int> differents = new Dictionary<string, int>();
+                foreach (var item in tempCodeClients) //Перебираем выбранных клиентов
+                {
+                    if (index == 0) //Если это первая итерация заносим 1ого клиента во временный словарь и указываем кол-во заказов - 1
+                    {
+                        differents.Add(item, 1);
+                        tempString += item;
+                        index++;
+                    }
+                    else
+                    {
+                        if (differents.Keys.Contains(item)) //Если в словаре уже есть ключ(код клиента) увеличиваем кол-во заказов на 1
+                        {
+                            differents[item] += 1;
+                        }
+                        else
+                        {
+                            differents.Add(item, 1); //Если нет, добавляем нового и его кол-во заказов увеличиваем до 1
+                        }
+                    }
+                }
+                var max = differents.MaxBy(kvp => kvp.Value).Key; //Определяем макмимальное значение value и передаём переменной max ключ(код клиента)
+                Console.WriteLine($"\nВ выбранном вами файле был найден только один год\n\n\"Золотой\" клиент на {yearsArray.First()} год - " +
+                    $"{manager.DB[2][max]}\nКонтактное лицо организации - {manager.DB[4][max]}" +
+                    $"\nНажмите любую клавишу для возврата в меню");
+                Console.ReadKey();
+                MenuOptions();
+            }
+            else 
+            {
+                Dictionary<int,string> numRateYears = new Dictionary<int,string>();
+
+                int secindex = 1;
+                Console.WriteLine("Для какого года определяем \"золотого\" клиента?");
+                foreach (var item in yearsArray) //Формируем словарь для выбора
+                {
+                    Console.WriteLine(secindex + ": " + item);
+                    numRateYears.Add(secindex, item);
+                    secindex++;
+                }
+            #region Проверки
+            userChoose:
+                Console.Write("Год: ");
+                string selectedYear = Console.ReadLine();
+                if (string.IsNullOrEmpty(selectedYear) || selectedYear.Length > 1) //Проверка на пустую строку или значения, которые больше двух символов
+                {
+                    Console.WriteLine("\nПожалуйста напишите одну цифру необходимого пункта меню");
+                    goto userChoose;
+                }
+                if (!int.TryParse(selectedYear, out int number)) //Проверка на введение буквы
+                {
+                    Console.WriteLine("\nВы ввели букву, введите цифру пункта меню");
+                    goto userChoose;
+                }
+                else if (numRateYears.Keys.Contains(int.Parse(selectedYear)) == false)
+                {
+                    Console.WriteLine("\nВ меню нет пункта " + selectedYear + "\nПроверьте правильность ввода"); //Обработка случая,
+                                                                                                                  //когда введены несуществующие пункты меню
+                    goto userChoose;
+                }
+                #endregion
+                List<string> tempArray = new List<string>();
+                foreach (var item in manager.DB[5])
+                {
+                    string[] tempString = item.Value.ToString().Split(',');
+                    if (DateTime.Parse(tempString[4]).Year == int.Parse(selectedYear))
+                    {
+                        tempArray.Add(tempString[1]); // код клиента
+                    }
+                }
+                string tempStringForDif = "";
+                index = 0;
+                Dictionary<string, int> differents = new Dictionary<string, int>();
+                foreach (var item in tempArray) //Перебираем выбранных клиентов
+                {
+                    if (index == 0) //Если это первая итерация заносим 1ого клиента во временный словарь и указываем кол-во заказов - 1
+                    {
+                        differents.Add(item, 1);
+                        tempStringForDif += item;
+                        index++;
+                    }
+                    else
+                    {
+                        if (differents.Keys.Contains(item)) //Если в словаре уже есть ключ(код клиента) увеличиваем кол-во заказов на 1
+                        {
+                            differents[item] += 1;
+                        }
+                        else
+                        {
+                            differents.Add(item, 1); //Если нет, добавляем нового и его кол-во заказов увеличиваем до 1
+                        }
+                    }
+                }
+                var max = differents.MaxBy(kvp => kvp.Value).Key; //Определяем макмимальное значение value и передаём переменной max ключ(код клиента)
+                Console.WriteLine($"\nВ выбранном вами файле был найден только один год\n\n\"Золотой\" клиент на {selectedYear.First()} год - " +
+                    $"{manager.DB[2][max]}\nКонтактное лицо организации - {manager.DB[4][max]}" +
+                    $"\nНажмите любую клавишу для возврата в меню");
+            }
         }
     }
 }
