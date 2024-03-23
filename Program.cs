@@ -26,6 +26,7 @@ namespace ThirdTask
             Console.ReadKey();
         }
 
+        #region Методы получения пути и отображения меню
         /// <summary>
         /// Метод получения пути до файла, проверка введеных пользователем данных
         /// </summary>
@@ -96,6 +97,7 @@ namespace ThirdTask
             }
 
         }
+        #endregion
 
         #region 1 Пункт меню
         /// <summary>
@@ -282,6 +284,10 @@ namespace ThirdTask
         }
         #endregion
 
+        #region 3 Пункт меню
+        /// <summary>
+        /// Метод вывода меню выбора периода, за который мы ищем золотого клиента
+        /// </summary>
         static void MenuOfGoldenClient() 
         {
             Console.Clear();
@@ -313,6 +319,9 @@ namespace ThirdTask
             #endregion
         }
 
+        /// <summary>
+        /// Метод выбора месяца и показ информации по этому месяцу
+        /// </summary>
         static void MonthGoldenClient()
         {
             Console.Clear();
@@ -364,7 +373,6 @@ namespace ThirdTask
                     tempArray.Add(tempString[1]); // код клиента
                 }
             }
-
             //Если в месяце был один заказ
             if (tempArray.Count == 1)
             {
@@ -456,7 +464,6 @@ namespace ThirdTask
                             differents.Add(item, 1); //Если нет, добавляем нового и его кол-во заказов увеличиваем до 1
                         }
                     }
-
                 }
                 var max = differents.MaxBy(kvp => kvp.Value).Key; //Определяем макмимальное значение value и передаём переменной max ключ(код клиента)
                 Console.WriteLine($"\"Золотой\" клиент на {months[int.Parse(selectedMonth)]} месяц - " +
@@ -490,6 +497,9 @@ namespace ThirdTask
             }
         }
 
+        /// <summary>
+        /// Метод выбора года и показ информации по этому году, если год один показывает информацию без выбора
+        /// </summary>
         static void YearsGoldenClient()
         {
             Console.Clear();
@@ -511,7 +521,7 @@ namespace ThirdTask
                 }
                 else yearsArray.Add(DateTime.Parse(tempString[4]).Year.ToString());
             }
-            //Если в файле не было заказов за несколько лет, выводи золотого клиента за один год
+            //Если в файле не было заказов за несколько лет, выводит золотого клиента за один год
             if (yearsArray.Count == 1) 
             {
                 string tempString = "";
@@ -544,6 +554,7 @@ namespace ThirdTask
                 Console.ReadKey();
                 MenuOptions();
             }
+            //Если в файле присутсвуют данные за разные года, выводит выбор года
             else 
             {
                 Dictionary<int,string> numRateYears = new Dictionary<int,string>();
@@ -581,7 +592,7 @@ namespace ThirdTask
                 foreach (var item in manager.DB[5])
                 {
                     string[] tempString = item.Value.ToString().Split(',');
-                    if (DateTime.Parse(tempString[4]).Year == int.Parse(selectedYear))
+                    if (DateTime.Parse(tempString[4]).Year == int.Parse(numRateYears[int.Parse(selectedYear)]))
                     {
                         tempArray.Add(tempString[1]); // код клиента
                     }
@@ -610,10 +621,13 @@ namespace ThirdTask
                     }
                 }
                 var max = differents.MaxBy(kvp => kvp.Value).Key; //Определяем макмимальное значение value и передаём переменной max ключ(код клиента)
-                Console.WriteLine($"\nВ выбранном вами файле был найден только один год\n\n\"Золотой\" клиент на {selectedYear.First()} год - " +
+                Console.WriteLine($"\n\"Золотой\" клиент на {int.Parse(numRateYears[int.Parse(selectedYear)])} год - " +
                     $"{manager.DB[2][max]}\nКонтактное лицо организации - {manager.DB[4][max]}" +
                     $"\nНажмите любую клавишу для возврата в меню");
+                Console.ReadKey();
+                MenuOptions();
             }
         }
+        #endregion
     }
 }
